@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css"; // Đảm bảo đã cài đặt và nhập Bootstrap
+import React, { useState, useEffect } from "react";
+import axios from "axios"; // Đảm bảo đã cài đặt axios bằng lệnh: npm install axios
+import "bootstrap/dist/css/bootstrap.min.css";
 
 // Component hiển thị một bình luận
 const Comment = ({ name, comment }) => (
@@ -12,12 +13,10 @@ const Comment = ({ name, comment }) => (
 );
 
 // Component hiển thị danh sách bình luận và form thêm bình luận
-const CommentList = () => {
-  const [comments, setComments] = useState([
-    { name: "Nguyễn Văn A", comment: "Sản phẩm rất tốt!" },
-    { name: "Trần Thị B", comment: "Mình rất hài lòng với chất lượng." },
-  ]);
+const CommentList = ({ comments }) => {
+  const [comments, setComments] = useState([comments]);
   const [newComment, setNewComment] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // Giả sử bạn lấy tên người dùng từ localStorage
   const userName = localStorage.getItem("username") || "Khách hàng";
@@ -29,6 +28,7 @@ const CommentList = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (newComment) {
+      // Thêm comment mới vào danh sách và reset ô nhập liệu
       setComments([...comments, { name: userName, comment: newComment }]);
       setNewComment("");
     }
@@ -41,26 +41,32 @@ const CommentList = () => {
       {/* Form thêm bình luận mới */}
       <form className="comment-form mb-4" onSubmit={handleSubmit}>
         <div className="mb-3">
-          <textarea
-            className="form-control"
-            placeholder="Nhập bình luận của bạn"
-            value={newComment}
-            onChange={handleChange}
-            rows="3"
-            required
-          />
+          <textarea className="form-control" placeholder="Nhập bình luận của bạn" value={newComment} onChange={handleChange} rows="3" required />
         </div>
         <button type="submit" className="btn btn-primary">
           Gửi bình luận
         </button>
       </form>
 
-      {/* Danh sách bình luận */}
-      <div className="comment-list">
-        {comments.map((comment, index) => (
-          <Comment key={index} name={comment.name} comment={comment.comment} />
-        ))}
-      </div>
+      {/* Hiển thị trạng thái đang tải */}
+      {loading ? (
+        <p>Loading comments...</p>
+      ) : (
+        <div className="comment-list">
+          {/* Danh sách bình luận */}
+          {comments.length > 0 ? (
+            comments.map((comment, index) => (
+              <Comment
+                key={comment.id || index} // Sử dụng id nếu có, nếu không sử dụng index
+                name={comment.id_user ? `User ${comment.id_user}` : "Anonymous"} // Hiển thị tên hoặc ID người dùng
+                comment={comment.comment}
+              />
+            ))
+          ) : (
+            <p>Không có bình luận nào.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 };
